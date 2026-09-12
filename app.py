@@ -1,5 +1,8 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, flash
 import mysql.connector
+
 
 app = Flask(__name__)
 app.secret_key = "fleet_secret_key_123"
@@ -8,7 +11,7 @@ def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password=os.getenv("DB_PASSWORD"),  # Automatically pulls the hidden password
+        password=os.getenv("DB_PASSWORD"),
         database="FleetManagement"
     )
 
@@ -44,7 +47,7 @@ def manage(entity):
         
     return render_template('dashboard.html', entity=entity, data=data)
 
-# --- EXISTING ROUTES (Customer, Company, Vehicle, Mechanic, Service, Part) ---
+# --- CUSTOMER ROUTES ---
 @app.route('/add_customer', methods=['POST'])
 def add_customer():
     conn = get_db_connection()
@@ -66,6 +69,7 @@ def delete_customer(id):
     conn.close()
     return redirect('/manage/customer')
 
+# --- COMPANY ROUTES ---
 @app.route('/add_company', methods=['POST'])
 def add_company():
     conn = get_db_connection()
@@ -87,6 +91,7 @@ def delete_company(id):
     conn.close()
     return redirect('/manage/company')
 
+# --- VEHICLE ROUTES ---
 @app.route('/add_vehicle', methods=['POST'])
 def add_vehicle():
     conn = get_db_connection()
@@ -108,6 +113,7 @@ def delete_vehicle(id):
     conn.close()
     return redirect('/manage/vehicle')
 
+# --- MECHANIC ROUTES ---
 @app.route('/add_mechanic', methods=['POST'])
 def add_mechanic():
     conn = get_db_connection()
@@ -130,6 +136,7 @@ def delete_mechanic(id):
     conn.close()
     return redirect('/manage/mechanic')
 
+# --- SERVICE ROUTES ---
 @app.route('/add_service', methods=['POST'])
 def add_service():
     conn = get_db_connection()
@@ -151,6 +158,7 @@ def delete_service(id):
     conn.close()
     return redirect('/manage/service')
 
+# --- SPARE PART ROUTES ---
 @app.route('/add_part', methods=['POST'])
 def add_part():
     conn = get_db_connection()
@@ -172,7 +180,7 @@ def delete_part(id):
     conn.close()
     return redirect('/manage/part')
 
-# --- NEW ROUTES: MAINTENANCE, WARRANTY, FUEL ---
+# --- MAINTENANCE, WARRANTY, FUEL ROUTES ---
 @app.route('/add_maintenance', methods=['POST'])
 def add_maintenance():
     conn = get_db_connection()
