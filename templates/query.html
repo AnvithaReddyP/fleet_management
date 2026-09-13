@@ -1,42 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Run SQL Query</title>
+    <title>SQL Query Window</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f8f9fa; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h1 { color: #2c3e50; }
+        textarea { width: 100%; padding: 15px; margin: 15px 0; border: 1px solid #ced4da; border-radius: 4px; font-family: monospace; font-size: 14px; }
+        button { padding: 12px 25px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #2980b9; }
+        .back-link { display: inline-block; margin-top: 20px; color: #7f8c8d; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; color: #2c3e50; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; display: block; overflow-x: auto; }
+        th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
+        th { background-color: #f1f3f5; }
+        .error { color: #e74c3c; font-weight: bold; padding: 15px; background: #fadbd8; border-radius: 4px; margin-top: 15px; }
+    </style>
 </head>
 <body>
-    <h2>Execute SQL Query</h2>
-    <form method="POST">
-        <textarea name="query" rows="5" cols="50" placeholder="Enter your SQL query here..."></textarea><br>
-        <button type="submit">Run Query</button>
-    </form>
+    <div class="container">
+        <h1>Run Custom SQL Query</h1>
+        <form method="POST">
+            <textarea name="query" rows="6" placeholder="SELECT * FROM vehicle;" required>{{ query if query else '' }}</textarea><br>
+            <button type="submit">Execute Query</button>
+        </form>
 
-    {% if error %}
-        <p style="color: red;">Error: {{ error }}</p>
-    {% endif %}
+        {% if error %}
+            <div class="error">Error: {{ error }}</div>
+        {% endif %}
 
-    {% if result %}
-        <h3>Result:</h3>
-        {% if columns %}
-            <table border="1">
+        {% if result %}
+            <h3 style="margin-top: 30px;">Query Results:</h3>
+            <table>
+                {% if columns %}
                 <tr>
                     {% for col in columns %}
                         <th>{{ col }}</th>
                     {% endfor %}
                 </tr>
+                {% endif %}
+                
                 {% for row in result %}
                     <tr>
-                        {% for col in columns %}
-                            <td>{{ row[col] }}</td>
-                        {% endfor %}
+                        {% if row is mapping %}
+                            {% for value in row.values() %}
+                                <td>{{ value }}</td>
+                            {% endfor %}
+                        {% else %}
+                            {% for item in row %}
+                                <td>{{ item }}</td>
+                            {% endfor %}
+                        {% endif %}
                     </tr>
                 {% endfor %}
             </table>
-        {% else %}
-            <p>{{ result }}</p>
         {% endif %}
-    {% endif %}
-    
-    <br>
-    <a href="/">Back to Dashboard</a>
+        
+        <a href="/" class="back-link">&larr; Back to Dashboard</a>
+    </div>
 </body>
 </html>
