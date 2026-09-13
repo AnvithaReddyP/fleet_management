@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, flash
 import mysql.connector
 
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "fleet_secret_key_123"
@@ -17,13 +18,40 @@ def get_db_connection():
 
 @app.route('/')
 def dashboard():
-    return render_template('dashboard.html', entity=None)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    vehicle_count = 0
+    customer_count = 0
+    mechanic_count = 0
+    
+    try:
+        cursor.execute("SELECT COUNT(*) as count FROM Vehicles")
+        vehicle_count = cursor.fetchone()['count']
+        
+        cursor.execute("SELECT COUNT(*) as count FROM Customer")
+        customer_count = cursor.fetchone()['count']
+        
+        cursor.execute("SELECT COUNT(*) as count FROM Mechanic")
+        mechanic_count = cursor.fetchone()['count']
+    except Exception as e:
+        print("Metrics error:", e)
+    finally:
+        conn.close()
+        
+    metrics = {
+        'vehicles': vehicle_count,
+        'customers': customer_count,
+        'mechanics': mechanic_count
+    }
+    return render_template('dashboard.html', entity=None, metrics=metrics)
 
 @app.route('/manage/<entity>')
 def manage(entity):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     data = []
+    extra_data = {}
     
     try:
         queries = {
@@ -35,8 +63,37 @@ def manage(entity):
             'part': "SELECT * FROM Spare_Part",
             'maintenance': "SELECT * FROM Maintenance",
             'warranty': "SELECT * FROM Vehicle_Warranty",
-            'fuel': "SELECT * FROM Fuel"
+            'fuel': "SELECT * FROM Fuel",
+            'availability': "SELECT * FROM Availability",
+            'vehicle_requirements': "SELECT * FROM Vehicle_requirements",
+            'service_requirements': "SELECT * FROM Service_requirements"
         }
+        
+        if entity == 'vehicle':
+            cursor.execute("SELECT Company_ID FROM Company")
+            extra_data['companies'] = cursor.fetchall()
+        elif entity == 'service':
+            cursor.execute("SELECT License_no FROM Vehicles")
+            extra_data['vehicles'] = cursor.fetchall()
+        elif entity == 'maintenance':
+            cursor.execute("SELECT Company_ID FROM Company")
+            extra_data['companies'] = cursor.fetchall()
+        elif entity in ['warranty', 'fuel', 'vehicle_requirements']:
+            cursor.execute("SELECT License_no FROM Vehicles")
+            extra_data['vehicles'] = cursor.fetchall()
+        elif entity == 'availability':
+            cursor.execute("SELECT Mechanic_ID FROM Mechanic")
+            extra_data['mechanics'] = cursor.fetchall()
+            cursor.execute("SELECT Part_ID FROM Spare_Part")
+            extra_data['parts'] = cursor.fetchall()
+        elif entity == 'service_requirements':
+            cursor.execute("SELECT Service_ID FROM Service")
+            extra_data['services'] = cursor.fetchall()
+            cursor.execute("SELECT Mechanic_ID FROM Mechanic")
+            extra_data['mechanics'] = cursor.fetchall()
+            cursor.execute("SELECT Part_ID FROM Spare_Part")
+            extra_data['parts'] = cursor.fetchall()
+
         if entity in queries:
             cursor.execute(queries[entity])
             data = cursor.fetchall()
@@ -45,7 +102,7 @@ def manage(entity):
     finally:
         conn.close()
         
-    return render_template('dashboard.html', entity=entity, data=data)
+    return render_template('dashboard.html', entity=entity, data=data, extra_data=extra_data)
 
 # --- CUSTOMER ROUTES ---
 @app.route('/add_customer', methods=['POST'])
@@ -60,7 +117,7 @@ def add_customer():
     finally: conn.close()
     return redirect('/manage/customer')
 
-@app.route('/delete_customer/<int:id>')
+@app.route('/delete_customer/<string:id>')
 def delete_customer(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -82,7 +139,7 @@ def add_company():
     finally: conn.close()
     return redirect('/manage/company')
 
-@app.route('/delete_company/<int:id>')
+@app.route('/delete_company/<string:id>')
 def delete_company(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -127,7 +184,7 @@ def add_mechanic():
     finally: conn.close()
     return redirect('/manage/mechanic')
 
-@app.route('/delete_mechanic/<int:id>')
+@app.route('/delete_mechanic/<string:id>')
 def delete_mechanic(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -149,7 +206,7 @@ def add_service():
     finally: conn.close()
     return redirect('/manage/service')
 
-@app.route('/delete_service/<int:id>')
+@app.route('/delete_service/<string:id>')
 def delete_service(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -171,7 +228,7 @@ def add_part():
     finally: conn.close()
     return redirect('/manage/part')
 
-@app.route('/delete_part/<int:id>')
+@app.route('/delete_part/<string:id>')
 def delete_part(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -193,7 +250,7 @@ def add_maintenance():
     finally: conn.close()
     return redirect('/manage/maintenance')
 
-@app.route('/delete_maintenance/<int:id>')
+@app.route('/delete_maintenance/<string:id>')
 def delete_maintenance(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -214,7 +271,7 @@ def add_warranty():
     finally: conn.close()
     return redirect('/manage/warranty')
 
-@app.route('/delete_warranty/<int:id>')
+@app.route('/delete_warranty/<string:id>')
 def delete_warranty(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -235,7 +292,7 @@ def add_fuel():
     finally: conn.close()
     return redirect('/manage/fuel')
 
-@app.route('/delete_fuel/<int:id>')
+@app.route('/delete_fuel/<string:id>')
 def delete_fuel(id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -243,6 +300,71 @@ def delete_fuel(id):
     conn.commit()
     conn.close()
     return redirect('/manage/fuel')
+
+# --- NEW TABLES ROUTES ---
+
+@app.route('/add_availability', methods=['POST'])
+def add_availability():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO Availability (Mechanic_ID, Spare_Part_ID, Availability) VALUES (%s, %s, %s)", 
+                       (request.form['mechanic_id'], request.form['spare_part_id'], request.form['availability']))
+        conn.commit()
+    except mysql.connector.Error as e: flash(f"Availability Error: {e}", "error")
+    finally: conn.close()
+    return redirect('/manage/availability')
+
+@app.route('/delete_availability/<string:id>')
+def delete_availability(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM Availability WHERE Mechanic_ID = %s", (id,))
+    conn.commit()
+    conn.close()
+    return redirect('/manage/availability')
+
+@app.route('/add_vehicle_requirements', methods=['POST'])
+def add_vehicle_requirements():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO Vehicle_requirements (License_no, Service_ID, Fuel_ID) VALUES (%s, %s, %s)", 
+                       (request.form['license_no'], request.form['service_id'], request.form['fuel_id']))
+        conn.commit()
+    except mysql.connector.Error as e: flash(f"Vehicle Requirements Error: {e}", "error")
+    finally: conn.close()
+    return redirect('/manage/vehicle_requirements')
+
+@app.route('/delete_vehicle_requirements/<string:id>')
+def delete_vehicle_requirements(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM Vehicle_requirements WHERE License_no = %s", (id,))
+    conn.commit()
+    conn.close()
+    return redirect('/manage/vehicle_requirements')
+
+@app.route('/add_service_requirements', methods=['POST'])
+def add_service_requirements():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO Service_requirements (Service_ID, Mechanic_ID, Spare_Part_ID) VALUES (%s, %s, %s)", 
+                       (request.form['service_id'], request.form['mechanic_id'], request.form['spare_part_id']))
+        conn.commit()
+    except mysql.connector.Error as e: flash(f"Service Requirements Error: {e}", "error")
+    finally: conn.close()
+    return redirect('/manage/service_requirements')
+
+@app.route('/delete_service_requirements/<string:id>')
+def delete_service_requirements(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM Service_requirements WHERE Service_ID = %s", (id,))
+    conn.commit()
+    conn.close()
+    return redirect('/manage/service_requirements')
 
 # --- QUERY WINDOW ---
 @app.route('/query_window', methods=['GET', 'POST'])
