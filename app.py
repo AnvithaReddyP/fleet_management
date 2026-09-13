@@ -6,13 +6,16 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
 def get_db_connection():
-    # Connects using environment variables provided by Render/Aiven, falling back to local defaults if testing locally
+    # Connects using environment variables provided by Render/Aiven with proper SSL and timeout settings for cloud databases
     connection = mysql.connector.connect(
         host=os.getenv("DB_HOST", "localhost"),
         user=os.getenv("DB_USER", "root"),
         password=os.getenv("DB_PASSWORD", ""),
-        database=os.getenv("DB_NAME", "fleet_management"),
-        port=int(os.getenv("DB_PORT", 3306))
+        database=os.getenv("DB_NAME", "defaultdb"),
+        port=int(os.getenv("DB_PORT", 3306)),
+        ssl_disabled=False,
+        ssl_verify_cert=False,
+        connection_timeout=10
     )
     return connection
 
