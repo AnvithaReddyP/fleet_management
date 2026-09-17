@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetDB – EER Diagram</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        /* Base Variables & Theme */
+        :root {
+            --sidebar-bg: #0f172a;
+            --sidebar-width: 260px;
+            --bg: #eef2ff;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        body.dark-mode {
+            --bg: #0b1120;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse 90% 60% at 10% 0%, rgba(99, 102, 241, 0.18), transparent 50%),
+                radial-gradient(ellipse 70% 50% at 90% 10%, rgba(59, 130, 246, 0.14), transparent 45%);
+            background-attachment: fixed;
+            transition: background 0.25s, color 0.25s;
+        }
+
+        /* Sidebar Styling (Matches Dashboard) */
+        .sidebar {
+            width: var(--sidebar-width); background: var(--sidebar-bg);
+            position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+            border-right: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column;
+            overflow-y: auto; color: #e2e8f0;
+        }
+        .sidebar-top { padding: 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .sidebar-logo { width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; }
+        .sidebar-brand h1 { font-size: 15px; font-weight: 700; color: #fff; }
+        .sidebar-brand span { font-size: 10px; color: #94a3b8; background: #1e293b; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+        .sidebar-brand p { font-size: 11px; color: #64748b; }
+        .nav-section { padding: 16px 12px 6px; }
+        .nav-label { font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; padding: 0 10px 8px; }
+        .nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 8px; color: #94a3b8; text-decoration: none; font-size: 13.5px; font-weight: 500; transition: 0.15s; }
+        .nav-item i { width: 18px; text-align: center; }
+        .nav-item:hover { background: #1e293b; color: #fff; }
+        .nav-item.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
+
+        /* Main Container */
+        .main { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); display: flex; flex-direction: column; min-height: 100vh; }
+        
+        .topbar { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 12px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+        body.dark-mode .topbar { background: rgba(30, 41, 59, 0.8); }
+        .btn-outline { background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; transition: 0.15s; }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+        .content { padding: 28px 32px; flex: 1; }
+        .page-title { margin-bottom: 24px; }
+        .page-title h1 { font-size: 22px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 10px; }
+        .page-title p { font-size: 13.5px; color: var(--text-muted); margin-top: 6px; }
+
+        .diagram-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); overflow-x: auto; text-align: center; }
+        
+        /* Tooltip details */
+        .details-box { background: var(--card); border: 1px dashed var(--border); border-radius: 8px; padding: 16px; margin-top: 20px; font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+        .details-box h4 { color: var(--text); font-weight: 600; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-top">
+        <div class="sidebar-logo"><i class="fas fa-truck-fast"></i></div>
+        <div class="sidebar-brand"><h1>FleetDB <span>v2.4</span></h1><p>Relational Core</p></div>
+    </div>
+    <div class="nav-section">
+        <div class="nav-label">Overview</div>
+        <a href="/" class="nav-item"><i class="fas fa-th-large"></i> <span>Dashboard Home</span></a>
+        <a href="/eer" class="nav-item active"><i class="fas fa-project-diagram"></i> <span>EER Diagram</span></a>
+        <a href="/query_window" class="nav-item"><i class="fas fa-chart-line"></i> <span>SQL Editor</span></a>
+    </div>
+    <div class="nav-section">
+        <div class="nav-label">Core Entities</div>
+        <a href="/manage/customer" class="nav-item"><i class="fas fa-users"></i> <span>Customers</span></a>
+        <a href="/manage/company" class="nav-item"><i class="fas fa-building"></i> <span>Companies</span></a>
+        <a href="/manage/vehicle" class="nav-item"><i class="fas fa-car"></i> <span>Vehicles</span></a>
+        <a href="/manage/mechanic" class="nav-item"><i class="fas fa-wrench"></i> <span>Mechanics</span></a>
+    </div>
+</aside>
+
+<div class="main">
+    <header class="topbar">
+        <div style="font-weight: 600; font-size: 14px; color: var(--text-muted);">Database Visualizer</div>
+        <a href="/" class="btn-outline"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+    </header>
+
+    <div class="content">
+        <div class="page-title">
+            <h1><i class="fas fa-project-diagram" style="color:var(--primary);"></i> Enhanced Entity-Relationship (EER) Diagram</h1>
+            <p>Conceptual model including disjoint specializations (d), multi-valued attributes, and complex relationships.</p>
+        </div>
+
+        <div class="diagram-container">
+            <div class="mermaid">
+                erDiagram
+                    COMPANY ||--o{ VEHICLE : owns
+                    COMPANY ||--o{ MAINTENANCE : provides
+                    VEHICLE ||--|| VEHICLE_WARRANTY : have
+                    CUSTOMER ||--o{ SERVICE : "asks for"
+                    VEHICLE ||--o{ SERVICE : requires
+                    VEHICLE ||--o{ FUEL : consumes
+                    SERVICE ||--o| WORK_ORDER : generates
+                    SERVICE }o--|| MECHANIC : needs
+                    MECHANIC ||--o{ AVAILABILITY : defines
+                    SPARE_PART ||--o{ AVAILABILITY : involves
+
+                    %% Level 1 Disjoint Specialization Hierarchy
+                    VEHICLE ||--o| FOUR_WHEELER : "is a (d)"
+                    VEHICLE ||--o| TWO_WHEELER : "is a (d)"
+                    VEHICLE ||--o| SIX_WHEELER : "is a (d)"
+
+                    %% Level 2 Disjoint Specialization Hierarchy
+                    FOUR_WHEELER ||--o| CAR : "is a (d)"
+                    FOUR_WHEELER ||--o| JEEP : "is a (d)"
+                    
+                    TWO_WHEELER ||--o| BIKE : "is a (d)"
+                    TWO_WHEELER ||--o| SCOOTER : "is a (d)"
+                    
+                    SIX_WHEELER ||--o| BUS : "is a (d)"
+                    SIX_WHEELER ||--o| TRUCK : "is a (d)"
+                    SIX_WHEELER ||--o| LORRY : "is a (d)"
+
+                    CUSTOMER {
+                        string Customer_ID PK
+                        string First_Name
+                        string Middle_Name
+                        string Last_Name
+                        string Ph_no UK
+                    }
+                    COMPANY {
+                        string Company_ID PK
+                        string Location
+                        string Area
+                        string City
+                        string State
+                    }
+                    VEHICLE {
+                        string License_no PK
+                        string Model
+                        date Mfd_Date
+                    }
+                    MAINTENANCE {
+                        string Maintenance_ID PK
+                        date date
+                        string Maintenance_logo
+                        string description
+                    }
+                    VEHICLE_WARRANTY {
+                        string Warranty_ID PK
+                        string Type
+                        date Expiration_date
+                    }
+                    SERVICE {
+                        string Service_ID PK
+                        float Cost
+                        string Category
+                    }
+                    WORK_ORDER {
+                        string Work_Order_ID PK
+                        string Priority_level
+                        string Status
+                    }
+                    FUEL {
+                        string Fuel_ID PK
+                        string Type
+                        float Price
+                        float Qty
+                        float Total_price
+                    }
+                    MECHANIC {
+                        string Mechanic_ID PK
+                        string Mechanic_name
+                        string Skill_level
+                    }
+                    SPARE_PART {
+                        string Part_ID PK
+                        string Name
+                        int Quantity
+                    }
+                    AVAILABILITY {
+                        string Mechanic_ID FK
+                        string Spare_Part_ID FK
+                        string Availability
+                    }
+                    FOUR_WHEELER {
+                        int Airbag_count
+                        int Seating_capacity
+                    }
+                    CAR {
+                        float Boot_space_capacity
+                    }
+                    JEEP {
+                        float ground_clearance
+                    }
+                    TWO_WHEELER {
+                        string Start_type
+                        string Engine_capacity
+                    }
+                    BIKE {
+                        int gear_count
+                    }
+                    SCOOTER {
+                        float underseat_storage
+                    }
+                    SIX_WHEELER {
+                        string permit_type
+                        float load_capacity
+                    }
+                    BUS {
+                        int Passenger_capacity
+                    }
+                    TRUCK {
+                        float Payload_capacity
+                    }
+                    LORRY {
+                        float Maximum_weight
+                    }
+            </div>
+        </div>
+
+        <div class="details-box">
+            <h4><i class="fas fa-info-circle"></i> Diagram Notes</h4>
+            <p><strong>Two-Level Disjoint Specialization:</strong> The relationships marked with "is a (d)" indicate a disjoint subset. A vehicle is split into a 2-wheeler, 4-wheeler, OR 6-wheeler. Those categories are then disjointly specialized further (e.g., a 4-wheeler is either a Car or a Jeep).<br>
+            <strong>M:N Resolution:</strong> The many-to-many relationship between Mechanics and Spare Parts (Uses) is resolved conceptually through the <code>AVAILABILITY</code> bridge table.<br>
+            <strong>Work Orders, Maintenance & Fuel:</strong> Added near Service, Company, and Vehicle to accurately reflect the operational logic in your updated physical diagrams.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Mermaid diagram with theme matching user preference
+    const isDark = localStorage.getItem("theme") === "dark";
+    if (isDark) document.body.classList.add("dark-mode");
+
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: isDark ? 'dark' : 'default',
+        securityLevel: 'loose',
+        er: {
+            diagramPadding: 20,
+            layoutDirection: 'LR',
+            minEntityWidth: 100,
+            minEntityHeight: 75,
+            entityPadding: 15,
+            stroke: 'gray',
+            fill: 'aliceblue'
+        }
+    });
+</script>
+</body>
+</html>

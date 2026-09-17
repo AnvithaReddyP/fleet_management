@@ -1,63 +1,732 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SQL Query Window</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Query Window | Fleet DB</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f8f9fa; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        h1 { color: #2c3e50; }
-        textarea { width: 100%; padding: 15px; margin: 15px 0; border: 1px solid #ced4da; border-radius: 4px; font-family: monospace; font-size: 14px; }
-        button { padding: 12px 25px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #2980b9; }
-        .back-link { display: inline-block; margin-top: 20px; color: #7f8c8d; text-decoration: none; }
-        .back-link:hover { text-decoration: underline; color: #2c3e50; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; display: block; overflow-x: auto; }
-        th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
-        th { background-color: #f1f3f5; }
-        .error { color: #e74c3c; font-weight: bold; padding: 15px; background: #fadbd8; border-radius: 4px; margin-top: 15px; }
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-light: rgba(59, 130, 246, 0.12);
+            --bg-main: #f1f5f9;
+            --sidebar-bg: #0f172a;
+            --sidebar-text: #94a3b8;
+            --sidebar-hover: #1e293b;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+            --shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+            --radius: 12px;
+            --editor-bg: #0f172a;
+            --editor-text: #e2e8f0;
+        }
+
+        body.dark-mode {
+            --bg-main: #0b1120;
+            --sidebar-bg: #020617;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+            --primary-light: rgba(59, 130, 246, 0.18);
+            --editor-bg: #020617;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body { display: flex; min-height: 100vh; background: var(--bg-main); color: var(--text-main); transition: background 0.25s, color 0.25s; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 270px;
+            background: var(--sidebar-bg);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100%;
+            overflow-y: auto;
+            z-index: 100;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        .sidebar-brand {
+            padding: 28px 20px 22px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(180deg, rgba(59,130,246,0.15) 0%, transparent 100%);
+        }
+        .sidebar-brand .logo {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px; font-size: 24px;
+            box-shadow: 0 8px 20px rgba(59,130,246,0.35);
+        }
+        .sidebar-brand h2 { font-size: 18px; font-weight: 700; margin: 0; }
+        .sidebar-brand p { font-size: 11px; color: var(--sidebar-text); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .sidebar-menu { padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+        .sidebar a {
+            color: var(--sidebar-text); text-decoration: none; padding: 11px 16px;
+            display: flex; align-items: center; gap: 12px; border-radius: 8px;
+            transition: all 0.2s; font-size: 13.5px; font-weight: 500;
+        }
+        .sidebar a i { width: 20px; text-align: center; font-size: 15px; opacity: 0.85; }
+        .sidebar a:hover, .sidebar a.active { background: var(--sidebar-hover); color: #fff; }
+        .sidebar a.active {
+            background: linear-gradient(90deg, rgba(59,130,246,0.25), transparent);
+            border-left: 3px solid #3b82f6; padding-left: 13px;
+        }
+        .sidebar-footer { padding: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+        .theme-toggle-btn {
+            width: 100%; background: #1e293b; color: #e2e8f0; border: 1px solid #334155;
+            padding: 11px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;
+        }
+        .theme-toggle-btn:hover { background: #334155; }
+
+        /* MAIN */
+        .main-content {
+            margin-left: 270px;
+            padding: 32px 40px;
+            flex-grow: 1;
+            width: calc(100% - 270px);
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+        }
+        .page-header h1 {
+            font-size: 26px; font-weight: 700; color: var(--text-main);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .page-header h1 i { color: var(--primary); }
+        .back-link {
+            color: var(--text-muted); text-decoration: none; font-size: 14px;
+            display: flex; align-items: center; gap: 6px; transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--primary); }
+
+        /* Query Card */
+        .query-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .query-card-header {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            padding: 18px 24px;
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+        }
+        .query-card-header h2 { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .query-card-body { padding: 24px; }
+
+        /* Editor area */
+        .editor-wrapper {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #334155;
+            background: var(--editor-bg);
+            margin-bottom: 16px;
+        }
+        .editor-toolbar {
+            background: #1e293b;
+            padding: 8px 14px;
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+            border-bottom: 1px solid #334155;
+        }
+        .editor-toolbar span {
+            font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;
+            margin-right: 8px;
+        }
+        .toolbar-btn {
+            background: #334155; color: #e2e8f0; border: none; padding: 5px 10px;
+            border-radius: 5px; font-size: 12px; cursor: pointer; transition: background 0.15s;
+        }
+        .toolbar-btn:hover { background: #475569; }
+        .toolbar-btn.active { background: var(--primary); color: white; }
+
+        textarea#sqlEditor {
+            width: 100%;
+            min-height: 180px;
+            padding: 18px 20px;
+            background: var(--editor-bg);
+            color: var(--editor-text);
+            border: none;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', 'Monaco', monospace;
+            font-size: 14.5px;
+            line-height: 1.55;
+            resize: vertical;
+            outline: none;
+        }
+        textarea#sqlEditor::placeholder { color: #64748b; }
+
+        .action-row {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px;
+        }
+        .btn-run {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white; border: none; padding: 12px 26px; border-radius: 8px;
+            font-weight: 600; font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+            transition: all 0.2s;
+        }
+        .btn-run:hover { filter: brightness(1.08); transform: translateY(-1px); }
+        .btn-clear {
+            background: transparent; color: var(--text-muted); border: 1px solid var(--border-color);
+            padding: 11px 18px; border-radius: 8px; font-weight: 500; font-size: 14px;
+            cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+        }
+        .btn-clear:hover { border-color: var(--danger); color: var(--danger); }
+
+        /* Example queries */
+        .examples-section { margin-top: 20px; }
+        .examples-section h3 {
+            font-size: 13px; color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 0.6px; margin-bottom: 12px; font-weight: 600;
+        }
+
+        /* Natural language → SQL */
+        .nl-box {
+            background: var(--bg-main);
+            border: 1px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+        .nl-box h3 {
+            font-size: 14px; font-weight: 600; margin-bottom: 6px;
+            display: flex; align-items: center; gap: 8px; color: var(--text-main);
+        }
+        .nl-box p { font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px; }
+        .nl-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
+        #nlInput {
+            flex: 1; min-width: 220px; padding: 12px 14px;
+            border: 1px solid var(--border-color); border-radius: 8px;
+            background: var(--card-bg); color: var(--text-main);
+            font-size: 14px; outline: none;
+        }
+        #nlInput:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        .btn-convert {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white; border: none; padding: 12px 18px; border-radius: 8px;
+            font-weight: 600; font-size: 13.5px; cursor: pointer;
+            display: flex; align-items: center; gap: 8px; white-space: nowrap;
+        }
+        .btn-convert:hover { filter: brightness(1.08); }
+        .nl-hint {
+            margin-top: 10px; font-size: 12px; color: var(--text-muted);
+        }
+        .nl-hint code {
+            background: var(--primary-light); color: var(--primary);
+            padding: 2px 6px; border-radius: 4px; font-size: 11.5px;
+        }
+        .nl-status {
+            margin-top: 10px; font-size: 13px; font-weight: 500;
+            display: none; align-items: center; gap: 6px;
+        }
+        .nl-status.ok { color: var(--success); display: flex; }
+        .nl-status.err { color: var(--danger); display: flex; }
+        .example-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip {
+            background: var(--primary-light); color: var(--primary);
+            border: 1px solid rgba(59,130,246,0.25);
+            padding: 7px 14px; border-radius: 20px; font-size: 12.5px;
+            cursor: pointer; transition: all 0.15s; font-weight: 500;
+        }
+        .chip:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Results */
+        .results-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .results-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+        }
+        .results-header h3 {
+            font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+        }
+        .results-header .badge {
+            background: var(--primary-light); color: var(--primary);
+            padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        }
+        .results-body { padding: 0; }
+
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 12px 16px; font-size: 13.5px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+        th {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: #fff !important; font-weight: 600; text-transform: uppercase;
+            font-size: 11px; letter-spacing: 0.5px; white-space: nowrap;
+            position: sticky; top: 0;
+        }
+        body:not(.dark-mode) tr:nth-child(even) td { background: #f8fafc; }
+        body.dark-mode tr:nth-child(even) td { background: #162032; }
+        tr:hover td { background: var(--primary-light) !important; }
+        tr:last-child td { border-bottom: none; }
+
+        .error-box {
+            margin: 20px 24px;
+            padding: 16px 18px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            color: #991b1b;
+            font-size: 14px;
+            display: flex; align-items: flex-start; gap: 10px;
+        }
+        body.dark-mode .error-box { background: rgba(239,68,68,0.15); border-color: #7f1d1d; color: #fca5a5; }
+
+        .success-msg {
+            margin: 20px 24px;
+            padding: 16px 18px;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            color: #065f46;
+            font-size: 14px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        body.dark-mode .success-msg { background: rgba(16,185,129,0.15); border-color: #065f46; color: #6ee7b7; }
+
+        .empty-state {
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .empty-state i { font-size: 42px; margin-bottom: 14px; opacity: 0.4; }
+        .empty-state p { font-size: 15px; }
+
+        @media (max-width: 900px) {
+            .sidebar { width: 70px; }
+            .sidebar-brand h2, .sidebar-brand p, .sidebar a span, .theme-toggle-btn span { display: none; }
+            .sidebar a { justify-content: center; padding: 14px; }
+            .main-content { margin-left: 70px; width: calc(100% - 70px); padding: 20px; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Run Custom SQL Query</h1>
-        <form method="POST">
-            <textarea name="query" rows="6" placeholder="SELECT * FROM vehicle;" required>{{ query if query else '' }}</textarea><br>
-            <button type="submit">Execute Query</button>
-        </form>
 
-        {% if error %}
-            <div class="error">Error: {{ error }}</div>
-        {% endif %}
-
-        {% if result %}
-            <h3 style="margin-top: 30px;">Query Results:</h3>
-            <table>
-                {% if columns %}
-                <tr>
-                    {% for col in columns %}
-                        <th>{{ col }}</th>
-                    {% endfor %}
-                </tr>
-                {% endif %}
-                
-                {% for row in result %}
-                    <tr>
-                        {% if row is mapping %}
-                            {% for value in row.values() %}
-                                <td>{{ value }}</td>
-                            {% endfor %}
-                        {% else %}
-                            {% for item in row %}
-                                <td>{{ item }}</td>
-                            {% endfor %}
-                        {% endif %}
-                    </tr>
-                {% endfor %}
-            </table>
-        {% endif %}
-        
-        <a href="/" class="back-link">&larr; Back to Dashboard</a>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="logo"><i class="fas fa-truck-fast"></i></div>
+            <h2>Fleet DB</h2>
+            <p>Management System</p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a>
+            <a href="/eer"><i class="fas fa-project-diagram"></i> <span>EER Diagram</span></a>
+            <a href="/manage/customer"><i class="fas fa-users"></i> <span>Customers</span></a>
+            <a href="/manage/company"><i class="fas fa-building"></i> <span>Companies</span></a>
+            <a href="/manage/vehicle"><i class="fas fa-car"></i> <span>Vehicles</span></a>
+            <a href="/manage/mechanic"><i class="fas fa-wrench"></i> <span>Mechanics</span></a>
+            <a href="/manage/service"><i class="fas fa-clipboard-list"></i> <span>Services</span></a>
+            <a href="/manage/part"><i class="fas fa-cogs"></i> <span>Spare Parts</span></a>
+            <a href="/manage/maintenance"><i class="fas fa-tools"></i> <span>Maintenance</span></a>
+            <a href="/manage/warranty"><i class="fas fa-file-contract"></i> <span>Warranty</span></a>
+            <a href="/manage/fuel"><i class="fas fa-gas-pump"></i> <span>Fuel</span></a>
+            <a href="/manage/availability"><i class="fas fa-calendar-check"></i> <span>Availability</span></a>
+            <a href="/manage/vehicle_requirements"><i class="fas fa-car-side"></i> <span>Vehicle Req.</span></a>
+            <a href="/manage/service_requirements"><i class="fas fa-screwdriver-wrench"></i> <span>Service Req.</span></a>
+        </div>
+        <div class="sidebar-footer">
+            <button onclick="toggleTheme()" class="theme-toggle-btn" id="themeToggleText">
+                <i class="fas fa-moon"></i> <span>Dark Mode</span>
+            </button>
+        </div>
     </div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1><i class="fas fa-terminal"></i> SQL Query Window</h1>
+            <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
+
+        <!-- Query Editor Card -->
+        <div class="query-card">
+            <div class="query-card-header">
+                <h2><i class="fas fa-code"></i> Write & Execute SQL</h2>
+                <span style="font-size:12px; opacity:0.85;">Supports SELECT, INSERT, UPDATE, DELETE</span>
+            </div>
+            <div class="query-card-body">
+
+                <!-- Natural language → SQL -->
+                <div class="nl-box">
+                    <h3><i class="fas fa-magic" style="color:#6366f1;"></i> Describe what you want (no SQL needed)</h3>
+                    <p>Type the operation in plain English. We’ll convert it into a SQL query for this database.</p>
+                    <div class="nl-row">
+                        <input type="text" id="nlInput" placeholder="e.g. show all vehicles, count customers, available mechanics, low stock parts…">
+                        <button type="button" class="btn-convert" onclick="convertToSQL()">
+                            <i class="fas fa-wand-magic-sparkles"></i> Convert to SQL
+                        </button>
+                    </div>
+                    <div class="nl-hint">
+                        Try: <code>show all customer names</code>
+                        <code>customer phone numbers</code>
+                        <code>count vehicles</code>
+                        <code>available mechanics</code>
+                        <code>low stock parts</code>
+                        <code>vehicles with company</code>
+                        <code>mechanic names</code>
+                        <code>list tables</code>
+                    </div>
+                    <div class="nl-status" id="nlStatus"></div>
+                </div>
+
+                <form method="POST" id="queryForm">
+                    <div class="editor-wrapper">
+                        <div class="editor-toolbar">
+                            <span>Quick fill</span>
+                            <button type="button" class="toolbar-btn" onclick="insertQuery('SELECT * FROM vehicles LIMIT 10;')">SELECT</button>
+                            <button type="button" class="toolbar-btn" onclick="insertQuery('SELECT COUNT(*) AS total FROM customer;')">COUNT</button>
+                            <button type="button" class="toolbar-btn" onclick="insertQuery('SHOW TABLES;')">SHOW TABLES</button>
+                            <button type="button" class="toolbar-btn" onclick="insertQuery('DESCRIBE vehicles;')">DESCRIBE</button>
+                        </div>
+                        <textarea id="sqlEditor" name="query" rows="8" placeholder="-- Write SQL here, or use the converter above&#10;SELECT * FROM vehicles;" required>{{ query if query else '' }}</textarea>
+                    </div>
+
+                    <div class="action-row">
+                        <button type="submit" class="btn-run"><i class="fas fa-play"></i> Execute Query</button>
+                        <button type="button" class="btn-clear" onclick="clearEditor()"><i class="fas fa-eraser"></i> Clear</button>
+                    </div>
+                </form>
+
+                <div class="examples-section">
+                    <h3>Example Queries</h3>
+                    <div class="example-chips">
+                        <span class="chip" onclick="insertQuery('SELECT * FROM vehicles;')">All vehicles</span>
+                        <span class="chip" onclick="insertQuery('SELECT * FROM customer;')">All customers</span>
+                        <span class="chip" onclick="insertQuery('SELECT * FROM mechanic WHERE availability IS NOT NULL;')">Available mechanics</span>
+                        <span class="chip" onclick="insertQuery('SELECT v.license_number, v.model, c.company_id, c.city FROM vehicles v JOIN company c ON v.company_id = c.company_id;')">Vehicles + Company</span>
+                        <span class="chip" onclick="insertQuery('SELECT category, AVG(cost) AS avg_cost FROM service GROUP BY category;')">Avg service cost</span>
+                        <span class="chip" onclick="insertQuery('SELECT * FROM spare_parts WHERE qty < 5;')">Low stock parts</span>
+                        <span class="chip" onclick="insertQuery('SELECT m.name, a.availability FROM mechanic m JOIN availability a ON m.mechanic_id = a.mechanic_id;')">Mechanic availability</span>
+                        <span class="chip" onclick="insertQuery('SELECT license_number, model, mfd_date FROM vehicles ORDER BY mfd_date DESC LIMIT 5;')">Newest vehicles</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        {% if error or result is not none %}
+        <div class="results-card">
+            <div class="results-header">
+                <h3>
+                    {% if error %}
+                        <i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> Query Error
+                    {% elif result is string %}
+                        <i class="fas fa-check-circle" style="color:#10b981;"></i> Query Executed
+                    {% else %}
+                        <i class="fas fa-table"></i> Results
+                        {% if result and result is not string %}
+                            <span class="badge">{{ result|length }} row{{ 's' if result|length != 1 else '' }}</span>
+                        {% endif %}
+                    {% endif %}
+                </h3>
+            </div>
+            <div class="results-body">
+                {% if error %}
+                    <div class="error-box">
+                        <i class="fas fa-times-circle" style="margin-top:2px;"></i>
+                        <div><strong>Error:</strong> {{ error }}</div>
+                    </div>
+                {% elif result is string %}
+                    <div class="success-msg">
+                        <i class="fas fa-check"></i> {{ result }}
+                    </div>
+                {% elif result %}
+                    <div class="table-container">
+                        <table>
+                            {% if columns %}
+                            <tr>
+                                {% for col in columns %}
+                                    <th>{{ col }}</th>
+                                {% endfor %}
+                            </tr>
+                            {% endif %}
+                            {% for row in result %}
+                                <tr>
+                                    {% if row is mapping %}
+                                        {% for value in row.values() %}
+                                            <td>{{ value }}</td>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for item in row %}
+                                            <td>{{ item }}</td>
+                                        {% endfor %}
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>Query returned no rows.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="results-card">
+            <div class="empty-state">
+                <i class="fas fa-database"></i>
+                <p>Run a query to see results here.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+    // Map natural language → SQL for FleetDB schema
+    function convertToSQL() {
+        const input = (document.getElementById('nlInput').value || '').trim().toLowerCase();
+        const status = document.getElementById('nlStatus');
+        if (!input) {
+            status.className = 'nl-status err';
+            status.innerHTML = '<i class="fas fa-exclamation-circle"></i> Type what you want to do first.';
+            return;
+        }
+
+        // Table aliases
+        const tables = {
+            'customer': 'customer', 'customers': 'customer',
+            'company': 'company', 'companies': 'company',
+            'vehicle': 'vehicles', 'vehicles': 'vehicles', 'car': 'vehicles', 'cars': 'vehicles',
+            'mechanic': 'mechanic', 'mechanics': 'mechanic',
+            'service': 'service', 'services': 'service',
+            'part': 'spare_parts', 'parts': 'spare_parts', 'spare part': 'spare_parts', 'spare parts': 'spare_parts',
+            'maintenance': 'maintenance',
+            'warranty': 'warranty', 'warranties': 'warranty',
+            'fuel': 'fuel',
+            'availability': 'availability',
+            'vehicle requirement': 'vehicle_requirements', 'vehicle requirements': 'vehicle_requirements',
+            'service requirement': 'service_requirements', 'service requirements': 'service_requirements'
+        };
+
+        // Column maps per table based on user's exact schema
+        const columns = {
+            customer: {
+                name: 'firstname, lastname',
+                names: 'firstname, lastname',
+                'first name': 'firstname',
+                'last name': 'lastname',
+                phone: 'phone_number',
+                'phone number': 'phone_number',
+                id: 'customer_id'
+            },
+            company: {
+                name: 'name',
+                location: 'area, city, state',
+                area: 'area',
+                city: 'city',
+                state: 'state',
+                id: 'company_id'
+            },
+            vehicles: {
+                name: 'model',
+                model: 'model',
+                license: 'license_number',
+                'license number': 'license_number',
+                date: 'mfd_date',
+                'manufactured date': 'mfd_date',
+                company: 'company_id',
+                id: 'license_number'
+            },
+            mechanic: {
+                name: 'name',
+                names: 'name',
+                skill: 'skill_level',
+                'skill level': 'skill_level',
+                id: 'mechanic_id'
+            },
+            service: {
+                cost: 'cost',
+                category: 'category',
+                id: 'service_id'
+            },
+            spare_parts: {
+                name: 'name',
+                names: 'name',
+                quantity: 'qty',
+                stock: 'qty',
+                id: 'spare_part_id'
+            },
+            maintenance: {
+                description: 'description',
+                date: 'date',
+                company: 'companyid',
+                id: 'mlogno'
+            },
+            warranty: {
+                type: 'type',
+                expiration: 'exp_date',
+                'expiry date': 'exp_date',
+                license: 'license_number',
+                id: 'warranty_id'
+            },
+            fuel: {
+                type: 'type',
+                price: 'price',
+                quantity: 'qty',
+                qty: 'qty',
+                id: 'fuel_id'
+            }
+        };
+
+        function findTable() {
+            const keys = Object.keys(tables).sort((a, b) => b.length - a.length);
+            for (const k of keys) {
+                if (input.includes(k)) return tables[k];
+            }
+            return null;
+        }
+
+        function findColumns(table) {
+            if (!table || !columns[table]) return null;
+            const colMap = columns[table];
+            const keys = Object.keys(colMap).sort((a, b) => b.length - a.length);
+            const selected = [];
+            for (const k of keys) {
+                const re = new RegExp('\\b' + k.replace(/\s+/g, '\\s+') + 's?\\b');
+                if (re.test(input) && !selected.includes(colMap[k])) {
+                    selected.push(colMap[k]);
+                }
+            }
+            if (table === 'customer' && /\bnames?\b/.test(input) && !selected.length) {
+                return 'firstname, lastname';
+            }
+            if (table === 'mechanic' && /\bnames?\b/.test(input) && !selected.length) {
+                return 'name';
+            }
+            if (selected.length) return selected.join(', ');
+            return null;
+        }
+
+        let sql = null;
+        const table = findTable();
+
+        if (/(list|show)\s+(all\s+)?tables?/.test(input) || input === 'tables' || input === 'show tables') {
+            sql = 'SHOW TABLES;';
+        }
+        else if (/describe|structure|columns?\s+of|schema\s+of/.test(input)) {
+            sql = table ? `DESCRIBE ${table};` : 'DESCRIBE vehicles;';
+        }
+        else if (/count|how many|number of/.test(input)) {
+            sql = table ? `SELECT COUNT(*) AS total FROM ${table};` : 'SELECT COUNT(*) AS total FROM vehicles;';
+        }
+        else if (/available\s+mechanic|mechanic.*available|who is available/.test(input)) {
+            sql = 'SELECT mechanic_id, name, skill_level FROM mechanic;';
+        }
+        else if (/low\s+stock|parts?\s+low|qty\s*<\s*5|running\s+out/.test(input)) {
+            sql = 'SELECT spare_part_id, name, qty FROM spare_parts WHERE qty < 5;';
+        }
+        else if (/average.*cost|avg.*cost|mean.*cost|cost\s+by\s+category/.test(input)) {
+            sql = 'SELECT category, AVG(cost) AS avg_cost FROM service GROUP BY category;';
+        }
+        else if (/vehicle.*company|company.*vehicle|vehicles?\s+with\s+company|join\s+vehicle/.test(input)) {
+            sql = 'SELECT v.license_number, v.model, v.mfd_date, c.company_id, c.city, c.state FROM vehicles v JOIN company c ON v.company_id = c.company_id;';
+        }
+        else if (/mechanic.*availability|availability.*mechanic/.test(input)) {
+            sql = 'SELECT m.mechanic_id, m.name, a.spare_part_id, a.availability FROM mechanic m JOIN availability a ON m.mechanic_id = a.mechanic_id;';
+        }
+        else if (/newest|latest|recent.*vehicle|new\s+vehicles?/.test(input)) {
+            sql = 'SELECT license_number, model, mfd_date FROM vehicles ORDER BY mfd_date DESC LIMIT 10;';
+        }
+        else if (/service.*vehicle|services?\s+for/.test(input)) {
+            sql = 'SELECT s.service_id, s.cost, s.category, v.model FROM service s JOIN vehicles v ON s.service_id = v.service_id;';
+        }
+        else if (/warrant/.test(input) && !/describe|count/.test(input)) {
+            sql = 'SELECT warranty_id, type, exp_date, license_number FROM warranty ORDER BY exp_date;';
+        }
+        else if (/show|list|get|display|select|all|fetch|view|names?|phone_number|model|cost|city|state/.test(input)) {
+            if (table) {
+                const cols = findColumns(table);
+                sql = cols ? `SELECT ${cols} FROM ${table};` : `SELECT * FROM ${table};`;
+            }
+        }
+        else if (/delete|remove/.test(input)) {
+            status.className = 'nl-status err';
+            status.innerHTML = '<i class="fas fa-exclamation-circle"></i> For safety, write DELETE queries manually in the editor below.';
+            return;
+        }
+
+        if (sql) {
+            document.getElementById('sqlEditor').value = sql;
+            document.getElementById('sqlEditor').focus();
+            status.className = 'nl-status ok';
+            status.innerHTML = '<i class="fas fa-check-circle"></i> SQL generated — review it below, then click Execute Query.';
+        } else {
+            status.className = 'nl-status err';
+            status.innerHTML = '<i class="fas fa-exclamation-circle"></i> Could not understand. Try: "show all customer names", "count vehicles", "available mechanics", "low stock parts".';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const nl = document.getElementById('nlInput');
+        if (nl) {
+            nl.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    convertToSQL();
+                }
+            });
+        }
+    });
+
+    function insertQuery(sql) {
+        document.getElementById('sqlEditor').value = sql;
+        document.getElementById('sqlEditor').focus();
+    }
+
+    function clearEditor() {
+        document.getElementById('sqlEditor').value = '';
+        document.getElementById('sqlEditor').focus();
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        const btn = document.getElementById('themeToggleText');
+        btn.innerHTML = isDark
+            ? '<i class="fas fa-sun"></i> <span>Light Mode</span>'
+            : '<i class="fas fa-moon"></i> <span>Dark Mode</span>';
+    }
+
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('themeToggleText').innerHTML = '<i class="fas fa-sun"></i> <span>Light Mode</span>';
+    }
+
+    document.getElementById('sqlEditor').addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('queryForm').submit();
+        }
+    });
+    </script>
 </body>
 </html>
