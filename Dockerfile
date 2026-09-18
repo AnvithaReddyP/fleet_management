@@ -1,28 +1,16 @@
 FROM python:3.11-slim
 
-# Install system dependencies and ODBC drivers for Linux
+# Install system dependencies, unixodbc, and standard drivers
 RUN apt-get update && apt-get install -y \
     unixodbc \
     unixodbc-dev \
-    curl \
-    gnupg \
+    libmyodbc \
     && rm -rf /var/lib/apt/lists/*
-
-# Install the Microsoft/MySQL ODBC package repository
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update
-
-# Install unixodbc-bin and driver components
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    odbcinst \
-    unixodbc \
-    libodbc1
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install python packages (including pyodbc)
+# Copy requirements and install python packages
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
