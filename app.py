@@ -22,14 +22,14 @@ def get_db_connection():
     password = os.getenv('DB_PASSWORD')
     
     connection_string = (
-        f"Driver={{MySQL ODBC 26.7 Unicode Driver}};"
-        f"Server={server};"
-        f"Port={port};"
-        f"Database={database};"
-        f"User={user};"
-        f"Password={password};"
-        f"SSLMODE=REQUIRE;"
-    )
+    f"Driver={{MySQL ODBC 8.0 Unicode Driver}};"
+    f"Server={os.getenv('DB_SERVER')};"
+    f"Port={os.getenv('DB_PORT')};"
+    f"Database={os.getenv('DB_NAME')};"
+    f"User={os.getenv('DB_USER')};"
+    f"Password={os.getenv('DB_PASSWORD')};"
+    f"Option=3;"
+)
     connection = pyodbc.connect(connection_string)
     return connection
 
