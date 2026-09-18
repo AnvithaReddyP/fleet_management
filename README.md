@@ -234,11 +234,14 @@ Page reloads with updated Database view
 Validation and Data Integrity
 
 •	Application Level: HTML5 required attributes and <select> dropdowns ensure users can only submit valid formatted data and existing Foreign Keys.
+
 •	Backend Level: try/except blocks in Python catch database anomalies and gracefully flash errors to the UI instead of crashing the server.
+
 •	Database Level: MariaDB enforces PRIMARY KEY uniqueness, FOREIGN KEY referential constraints, and strict data typing (e.g., DECIMAL(10,2) for costs).
 
 
 Project Structure
+
 
 FleetDB/
 │
@@ -257,7 +260,9 @@ FleetDB/
 Prerequisites
 
 •	Python 3.11+
+
 •	MariaDB or MySQL Server
+
 •	ODBC Drivers (unixodbc, odbc-mariadb)
 
 
