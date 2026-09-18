@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Download and install MySQL Connector/ODBC for Linux
-RUN curl -O https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.36-linux-glibc2.28-x86-64bit.tar.gz \
+# Download and install MySQL Connector/ODBC for Linux (added -L flag for redirects)
+RUN curl -OL https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.36-linux-glibc2.28-x86-64bit.tar.gz \
     && tar -xvf mysql-connector-odbc-8.0.36-linux-glibc2.28-x86-64bit.tar.gz \
     && cp mysql-connector-odbc-8.0.36-linux-glibc2.28-x86-64bit/bin/* /usr/local/bin/ \
     && cp mysql-connector-odbc-8.0.36-linux-glibc2.28-x86-64bit/lib/* /usr/local/lib/ \
