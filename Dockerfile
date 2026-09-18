@@ -1,10 +1,9 @@
 FROM python:3.11-slim
 
-# Install system dependencies, unixodbc, and standard drivers
+# Install core unixodbc system packages
 RUN apt-get update && apt-get install -y \
     unixodbc \
     unixodbc-dev \
-    libmyodbc \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
