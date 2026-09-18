@@ -1,21 +1,25 @@
 FleetDB - Fleet Management Relational Database System
 
 Deployed Link
+
 https://fleet-management-2.onrender.com/
 
 
 Team Members
+
 1.	Dhyanam Amit Shah – 25BCE1085
 2.	P. Anvitha Reddy – 25BCE1090
 3.	A. Nikhitha – 25BCE1095
 
 
 Project Overview
+
 FleetDB is a Python-based Fleet Management System developed as a comprehensive DBMS project. The system combines a MySQL relational database with a modern, responsive Flask web application to manage transport companies, commercial vehicles, mechanics, spare parts, and maintenance logs.
 The project demonstrates the complete database development lifecycle, from conceptual EER design and relational normalization to dynamic SQL execution, backend routing, and interactive frontend integration with Natural Language Processing (NLP) capabilities.
 
 
 Objectives
+
 The main objectives of the project are:
 •	Design and implement a highly normalized relational database for a logistics and fleet maintenance domain.
 •	Convert conceptual EER designs into normalized relational tables (1NF, 2NF, 3NF).
@@ -28,6 +32,7 @@ The main objectives of the project are:
 
 
 Technology Stack
+
 Component	Technology
 Programming Language	Python 3.11
 Frontend	HTML5 with embedded CSS3, JavaScript, Jinja2, Tailwind-inspired CSS
@@ -40,6 +45,7 @@ Deployment	Docker, Gunicorn 21.2.0, render
 
 
 Development Methodology
+
 The project was developed in the following stages:
 Step 1 : Requirement Analysis
 The fleet management domain was analyzed to identify core entities and operations. Key functional areas included: Customer management, Company logistics, Vehicle tracking, Mechanic assignments, Service logging, Parts inventory, Warranty tracking, and Fuel management.
@@ -67,8 +73,10 @@ The application was packaged into a Docker container with OS-level ODBC drivers 
 
 
 Database Design
+
 The final database contains 12 relational tables covering the major fleet entities and relationships.
 Core Entities
+
 •	Company (Client Organizations)
 o	Register new B2B transport companies and logistics clients.
 o	Track multi-state locations by storing specific branch areas and cities.
@@ -110,6 +118,7 @@ o	Monitor fluctuating fuel prices and total quantities consumed.
 o	Analyze operational costs by linking fuel usage back to specific vehicles.
 
 Associative (Bridge) Entities
+
 •	Availability (Mechanic & Part Mapping)
 o	Track exactly which mechanic currently holds or has access to specific spare parts.
 o	Determine if a repair can proceed by cross-referencing a mechanic's schedule with the physical availability of the required part.
@@ -124,6 +133,7 @@ o	Reserve the specific spare parts needed from inventory for that exact service 
 
 
 SQL Implementation
+
 Standard SQL is used extensively throughout the backend for:
 •	Data retrieval (SELECT with JOIN operations for the NLP query engine).
 •	Data insertion (INSERT INTO parameterized queries to prevent SQL injection).
@@ -133,6 +143,7 @@ Standard SQL is used extensively throughout the backend for:
 •	Schema introspection (SHOW TABLES, DESCRIBE for the query window).
 
 Custom Logic & Integrations
+
 Rather than relying purely on database-side PL/SQL, FleetDB utilizes application-side processing for advanced features:
 •	Natural Language to SQL Parser: A custom module that interprets user inputs like "show low stock parts" and translates them into SELECT spare_part_id, name, qty FROM spare_parts WHERE qty < 5;.
 •	Foreign Key Auto-Population: When adding a new Vehicle, the backend dynamically queries the company table to populate the UI dropdown, ensuring referential integrity before the INSERT statement is even constructed.
@@ -140,6 +151,7 @@ Rather than relying purely on database-side PL/SQL, FleetDB utilizes application
 
 
 Backend Architecture
+
 The backend operates on a streamlined MVC-inspired architecture:
 Web Browser (Jinja2 / JS)    Flask Route Controllers (app.py)    DB Connection Manager (get_db_connection)    PyODBC Driver / unixodbc    MariaDB / MySQL Database
 
@@ -160,6 +172,7 @@ conn = pyodbc.connect(connection_string)
 
 
 Frontend Architecture
+
 The frontend is implemented using HTML5 and Jinja2 templates, styled with custom CSS variables to support dynamic themes.
 •	Layout: A persistent sidebar navigation with a responsive main content area.
 •	Modals: Instead of separate pages, CRUD operations utilize dynamic overlay modals (addModal, editModal) injected with context-specific data.
@@ -168,6 +181,7 @@ The frontend is implemented using HTML5 and Jinja2 templates, styled with custom
 
 
 Functional Modules
+
 •	Customer & Company Management: View, add, update, and delete business entities.
 •	Vehicle & Fleet Management: Track vehicles, view manufacturing dates, and assign them to corporate entities.
 •	Service & Mechanic Management: Register mechanics, define skill levels, and map them to service categories.
@@ -177,6 +191,7 @@ Functional Modules
 
 
 Dashboard
+
 The main dashboard provides a summarized telemetry view of the fleet system. It retrieves and displays:
 •	Total active vehicles.
 •	Total registered B2B customers.
@@ -186,6 +201,7 @@ These metrics are dynamically queried via aggregate SQL functions (SELECT COUNT(
 
 
 SQL Query Module
+
 The application includes an interactive, browser-based IDE for SQL execution.
 The workflow is:
 User enters Natural Language or Raw SQL    Flask /query_window endpoint    PyODBC Cursor Execution    Dynamic Column Extraction (cursor.description)    Jinja2 Table Rendering
@@ -194,6 +210,7 @@ This module allows administrators to run complex JOIN or GROUP BY queries that f
 
 
 CRUD Workflow
+
 A typical Database update follows this secure flow:
 User clicks "Edit Vehicle"
      ↓
@@ -215,12 +232,14 @@ Page reloads with updated Database view
 
 
 Validation and Data Integrity
+
 •	Application Level: HTML5 required attributes and <select> dropdowns ensure users can only submit valid formatted data and existing Foreign Keys.
 •	Backend Level: try/except blocks in Python catch database anomalies and gracefully flash errors to the UI instead of crashing the server.
 •	Database Level: MariaDB enforces PRIMARY KEY uniqueness, FOREIGN KEY referential constraints, and strict data typing (e.g., DECIMAL(10,2) for costs).
 
 
 Project Structure
+
 FleetDB/
 │
 ├── app.py                  # Main Flask application and route definitions
@@ -236,6 +255,7 @@ FleetDB/
     └── query.html          # Interactive SQL editor and NLP module16. Installation and Setup
 
 Prerequisites
+
 •	Python 3.11+
 •	MariaDB or MySQL Server
 •	ODBC Drivers (unixodbc, odbc-mariadb)
@@ -243,6 +263,7 @@ Prerequisites
 
 
 Database Setup
+
 1.	Start your database server.
 2.	Create a database named fleetdb.
 3.	Configure your local .env file:
@@ -257,6 +278,7 @@ DB_PASSWORD=your_password
 
 
 Running the Application
+
 Cloud Deployment (Render & Docker) The application is deployed live as a fully containerized continuous web service.
 •	Web Host: Render (Docker Web Service)
 •	Database Host: Aiven (Managed MySQL Cluster)
@@ -265,6 +287,7 @@ Cloud Deployment (Render & Docker) The application is deployed live as a fully c
 
 
 Testing
+
 The system was tested across multiple vectors:
 •	Database Testing: Direct SQL insertions to verify constraint rejections and cascading behaviors.
 •	Backend Testing: Form submission handling, parameterized query safety, and pyodbc exception catching.
@@ -272,7 +295,8 @@ The system was tested across multiple vectors:
 •	NLP Testing: Ensuring plain English text successfully parsed into valid SQL queries mapped to the exact schema aliases.
 
 
-Team Contribution
+Contribution
+
 •	Database Design: Conceptual modeling, normalization to 3NF, schema creation.
 •	Backend Development: Flask routing, PyODBC integration, exception handling.
 •	Frontend Development: CSS variable theming, Jinja2 templating, JavaScript modal logic, Mermaid.js integration.
@@ -280,6 +304,7 @@ Team Contribution
 
 
 Conclusion
+
 FleetDB successfully demonstrates the creation of a modern, full-stack database application.
 The project thoroughly covers the DBMS lifecycle:
 Domain Analysis
