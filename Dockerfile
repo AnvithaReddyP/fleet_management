@@ -5,7 +5,6 @@ RUN apt-get update && apt-get install -y \
     unixodbc \
     unixodbc-dev \
     curl \
-    libodbc1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install MySQL Connector/ODBC for Linux
