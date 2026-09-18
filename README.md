@@ -86,6 +86,7 @@ o	Query staff rosters to find qualified personnel for specific mechanical issues
 o	Track which services each mechanic is actively assigned to.
 
 Operational Entities
+
 •	Service (Categories & Costs)
 o	Build a standardized catalog of available repair and maintenance operations (e.g., transmission rebuild, oil change).
 o	Track and update the base financial cost for each service category.
