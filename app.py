@@ -22,7 +22,7 @@ def get_db_connection():
     password = os.getenv('DB_PASSWORD')
     
     connection_string = (
-    f"Driver={{MySQL ODBC 8.0 Unicode Driver}};"
+    f"Driver={{Mariadb ODBC Driver}};"
     f"Server={os.getenv('DB_SERVER')};"
     f"Port={os.getenv('DB_PORT')};"
     f"Database={os.getenv('DB_NAME')};"
