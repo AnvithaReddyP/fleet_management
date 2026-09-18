@@ -7,9 +7,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-print("DEBUG CHECK --> Server:", os.getenv('DB_SERVER'))
-print("DEBUG CHECK --> User:", os.getenv('DB_USER'))
-print("DEBUG CHECK --> Password Loaded?:", "YES" if os.getenv('DB_PASSWORD') else "NO")
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'fallback_secret_key')

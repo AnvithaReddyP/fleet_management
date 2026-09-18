@@ -114,142 +114,110 @@
     <div class="content">
         <div class="page-title">
             <h1><i class="fas fa-project-diagram" style="color:var(--primary);"></i> Enhanced Entity-Relationship (EER) Diagram</h1>
-            <p>Conceptual model including disjoint specializations (d), multi-valued attributes, and complex relationships.</p>
+            <p>Updated schema matching the 12 core tables and current SQL constraints.</p>
         </div>
 
         <div class="diagram-container">
             <div class="mermaid">
                 erDiagram
-                    COMPANY ||--o{ VEHICLE : owns
-                    COMPANY ||--o{ MAINTENANCE : provides
-                    VEHICLE ||--|| VEHICLE_WARRANTY : have
-                    CUSTOMER ||--o{ SERVICE : "asks for"
-                    VEHICLE ||--o{ SERVICE : requires
-                    VEHICLE ||--o{ FUEL : consumes
-                    SERVICE ||--o| WORK_ORDER : generates
-                    SERVICE }o--|| MECHANIC : needs
-                    MECHANIC ||--o{ AVAILABILITY : defines
-                    SPARE_PART ||--o{ AVAILABILITY : involves
+                    company {
+                        VARCHAR(50) company_id PK
+                        VARCHAR(100) name
+                        VARCHAR(100) area
+                        VARCHAR(100) city
+                        VARCHAR(100) state
+                    }
+                    maintenance {
+                        VARCHAR(50) mlogno PK
+                        VARCHAR(50) companyid FK
+                        DATE date
+                        TEXT description
+                    }
+                    fuel {
+                        VARCHAR(50) fuel_id PK
+                        VARCHAR(50) type
+                        DECIMAL(10,2) price
+                        FLOAT qty
+                    }
+                    customer {
+                        VARCHAR(50) customer_id PK
+                        VARCHAR(50) firstname
+                        VARCHAR(50) middlename
+                        VARCHAR(50) lastname
+                        VARCHAR(20) phone_number
+                    }
+                    service {
+                        VARCHAR(50) service_id PK
+                        VARCHAR(50) customer_id FK
+                        VARCHAR(50) category
+                        DECIMAL(10,2) cost
+                    }
+                    vehicles {
+                        VARCHAR(50) license_number PK
+                        VARCHAR(50) company_id FK
+                        VARCHAR(50) service_id FK
+                        VARCHAR(50) fuel_id FK
+                        VARCHAR(100) model
+                        DATE mfd_date
+                    }
+                    mechanic {
+                        VARCHAR(50) mechanic_id PK
+                        VARCHAR(100) name
+                        VARCHAR(50) skill_level
+                        VARCHAR(50) service_id FK
+                    }
+                    spare_parts {
+                        VARCHAR(50) spare_part_id PK
+                        VARCHAR(50) service_id FK
+                        VARCHAR(100) name
+                        INT qty
+                    }
+                    availability {
+                        VARCHAR(50) mechanic_id PK, FK
+                        VARCHAR(50) spare_part_id PK, FK
+                        VARCHAR(50) availability
+                    }
+                    warranty {
+                        VARCHAR(50) warranty_id PK
+                        VARCHAR(50) license_number FK
+                        VARCHAR(50) type
+                        DATE exp_date
+                    }
+                    vehicle_requirements {
+                        VARCHAR(50) license_number PK, FK
+                        VARCHAR(50) service_id FK
+                        VARCHAR(50) fuel_id FK
+                    }
+                    service_requirements {
+                        VARCHAR(50) service_id PK, FK
+                        VARCHAR(50) mechanic_id PK, FK
+                        VARCHAR(50) spare_part_id PK, FK
+                    }
 
-                    %% Level 1 Disjoint Specialization Hierarchy
-                    VEHICLE ||--o| FOUR_WHEELER : "is a (d)"
-                    VEHICLE ||--o| TWO_WHEELER : "is a (d)"
-                    VEHICLE ||--o| SIX_WHEELER : "is a (d)"
-
-                    %% Level 2 Disjoint Specialization Hierarchy
-                    FOUR_WHEELER ||--o| CAR : "is a (d)"
-                    FOUR_WHEELER ||--o| JEEP : "is a (d)"
-                    
-                    TWO_WHEELER ||--o| BIKE : "is a (d)"
-                    TWO_WHEELER ||--o| SCOOTER : "is a (d)"
-                    
-                    SIX_WHEELER ||--o| BUS : "is a (d)"
-                    SIX_WHEELER ||--o| TRUCK : "is a (d)"
-                    SIX_WHEELER ||--o| LORRY : "is a (d)"
-
-                    CUSTOMER {
-                        string Customer_ID PK
-                        string First_Name
-                        string Middle_Name
-                        string Last_Name
-                        string Ph_no UK
-                    }
-                    COMPANY {
-                        string Company_ID PK
-                        string Location
-                        string Area
-                        string City
-                        string State
-                    }
-                    VEHICLE {
-                        string License_no PK
-                        string Model
-                        date Mfd_Date
-                    }
-                    MAINTENANCE {
-                        string Maintenance_ID PK
-                        date date
-                        string Maintenance_logo
-                        string description
-                    }
-                    VEHICLE_WARRANTY {
-                        string Warranty_ID PK
-                        string Type
-                        date Expiration_date
-                    }
-                    SERVICE {
-                        string Service_ID PK
-                        float Cost
-                        string Category
-                    }
-                    WORK_ORDER {
-                        string Work_Order_ID PK
-                        string Priority_level
-                        string Status
-                    }
-                    FUEL {
-                        string Fuel_ID PK
-                        string Type
-                        float Price
-                        float Qty
-                        float Total_price
-                    }
-                    MECHANIC {
-                        string Mechanic_ID PK
-                        string Mechanic_name
-                        string Skill_level
-                    }
-                    SPARE_PART {
-                        string Part_ID PK
-                        string Name
-                        int Quantity
-                    }
-                    AVAILABILITY {
-                        string Mechanic_ID FK
-                        string Spare_Part_ID FK
-                        string Availability
-                    }
-                    FOUR_WHEELER {
-                        int Airbag_count
-                        int Seating_capacity
-                    }
-                    CAR {
-                        float Boot_space_capacity
-                    }
-                    JEEP {
-                        float ground_clearance
-                    }
-                    TWO_WHEELER {
-                        string Start_type
-                        string Engine_capacity
-                    }
-                    BIKE {
-                        int gear_count
-                    }
-                    SCOOTER {
-                        float underseat_storage
-                    }
-                    SIX_WHEELER {
-                        string permit_type
-                        float load_capacity
-                    }
-                    BUS {
-                        int Passenger_capacity
-                    }
-                    TRUCK {
-                        float Payload_capacity
-                    }
-                    LORRY {
-                        float Maximum_weight
-                    }
+                    company ||--o{ maintenance : "has"
+                    company ||--o{ vehicles : "owns"
+                    customer ||--o{ service : "requests"
+                    service ||--o{ vehicles : "receives"
+                    fuel ||--o{ vehicles : "uses"
+                    service ||--o{ mechanic : "assigned to"
+                    service ||--o{ spare_parts : "uses"
+                    mechanic ||--o{ availability : "tracks"
+                    spare_parts ||--o{ availability : "tracks"
+                    vehicles ||--o{ warranty : "has"
+                    vehicles ||--|| vehicle_requirements : "needs"
+                    service ||--o{ vehicle_requirements : "requires"
+                    fuel ||--o{ vehicle_requirements : "requires"
+                    service ||--o{ service_requirements : "needs"
+                    mechanic ||--o{ service_requirements : "involves"
+                    spare_parts ||--o{ service_requirements : "involves"
             </div>
         </div>
 
         <div class="details-box">
             <h4><i class="fas fa-info-circle"></i> Diagram Notes</h4>
-            <p><strong>Two-Level Disjoint Specialization:</strong> The relationships marked with "is a (d)" indicate a disjoint subset. A vehicle is split into a 2-wheeler, 4-wheeler, OR 6-wheeler. Those categories are then disjointly specialized further (e.g., a 4-wheeler is either a Car or a Jeep).<br>
-            <strong>M:N Resolution:</strong> The many-to-many relationship between Mechanics and Spare Parts (Uses) is resolved conceptually through the <code>AVAILABILITY</code> bridge table.<br>
-            <strong>Work Orders, Maintenance & Fuel:</strong> Added near Service, Company, and Vehicle to accurately reflect the operational logic in your updated physical diagrams.</p>
+            <p><strong>Direct SQL Mapping:</strong> This diagram precisely reflects the 12 core tables defined in your updated SQL script.<br>
+            <strong>Bridge Tables:</strong> <code>availability</code>, <code>vehicle_requirements</code>, and <code>service_requirements</code> are represented as associative entities handling composite primary and foreign keys.<br>
+            <strong>Data Types:</strong> Actual SQL data types and constraint definitions (PK, FK) are included within the entity blocks.</p>
         </div>
     </div>
 </div>
