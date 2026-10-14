@@ -18,15 +18,41 @@ def get_db_connection():
     user = os.getenv('DB_USER')
     password = os.getenv('DB_PASSWORD')
     
+    # Auto-detect driver or allow manual override via DB_DRIVER env var
+    driver = os.getenv('DB_DRIVER')
+    if not driver:
+        try:
+            available = pyodbc.drivers()
+        except Exception:
+            available = []
+        
+        candidates = [
+            'MariaDB Unicode',
+            'MySQL ODBC 26.7 Unicode Driver',
+            'MySQL ODBC 8.0 Unicode Driver',
+            'MySQL ODBC 8.4 Unicode Driver',
+            'MySQL ODBC 9.0 Unicode Driver',
+            'MariaDB ANSI'
+        ]
+        for cand in candidates:
+            if cand in available:
+                driver = cand
+                break
+        
+        if not driver and available:
+            driver = available[0]
+        if not driver:
+            driver = 'MariaDB Unicode'
+
     connection_string = (
-    f"Driver={{MySQL ODBC 26.7 Unicode Driver}};"
-    f"Server={os.getenv('DB_SERVER')};"
-    f"Port={os.getenv('DB_PORT')};"
-    f"Database={os.getenv('DB_NAME')};"
-    f"User={os.getenv('DB_USER')};"
-    f"Password={os.getenv('DB_PASSWORD')};"
-    f"Option=3;"
-)
+        f"Driver={{{driver}}};"
+        f"Server={server};"
+        f"Port={port};"
+        f"Database={database};"
+        f"User={user};"
+        f"Password={password};"
+        f"Option=3;"
+    )
     connection = pyodbc.connect(connection_string)
     return connection
 
