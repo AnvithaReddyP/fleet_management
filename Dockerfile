@@ -1,15 +1,16 @@
 FROM python:3.11-slim
 
-# Install system dependencies, curl, and add MariaDB repository for ODBC drivers
 RUN apt-get update && apt-get install -y \
     unixodbc \
     unixodbc-dev \
-    curl \
-    gnupg \
-    && curl -sS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | bash \
-    && apt-get update && apt-get install -y \
-    odbc-mariadb \
+    libmyodbc \
     && rm -rf /var/lib/apt/lists/*
+
+# Register the exact driver name for Linux unixODBC
+RUN echo "[MySQL ODBC 26.7(w) Driver]" >> /etc/odbcinst.ini \
+    && echo "Description=MySQL ODBC 26.7 Driver" >> /etc/odbcinst.ini \
+    && echo "Driver=/usr/lib/x86_64-linux-gnu/odbc/libmyodbc8w.so" >> /etc/odbcinst.ini \
+    && echo "UsageCount=1" >> /etc/odbcinst.ini
 
 WORKDIR /app
 
