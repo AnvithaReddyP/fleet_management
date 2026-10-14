@@ -1,22 +1,17 @@
 FROM python:3.11-slim
 
-# Install system dependencies and MariaDB ODBC driver (fully compatible with MySQL)
+# Install system dependencies required for pyodbc and ODBC drivers
 RUN apt-get update && apt-get install -y \
     unixodbc \
     unixodbc-dev \
-    odbc-mariadb \
+    libmyodbc \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
-# Copy requirements and install python packages
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
 COPY . .
 
-# Expose port and run using gunicorn
-EXPOSE 5000
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+CMD gunicorn --bind 0.0.0.0:$PORT app:app
