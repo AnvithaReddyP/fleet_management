@@ -1,10 +1,14 @@
 FROM python:3.11-slim
 
-# Install system dependencies and the MariaDB ODBC driver for Linux
+# Install system dependencies, curl, and add MariaDB repository for ODBC drivers
 RUN apt-get update && apt-get install -y \
     unixodbc \
     unixodbc-dev \
-    mariadb-connector-odbc \
+    curl \
+    gnupg \
+    && curl -sS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | bash \
+    && apt-get update && apt-get install -y \
+    odbc-mariadb \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
