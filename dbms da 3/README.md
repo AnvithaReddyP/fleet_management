@@ -238,3 +238,56 @@ DB_USER=root
 DB_PASSWORD=
 DB_SSLMODE=disable
 SECRET_KEY=super_secret_key
+4. Initialize and seed the database:
+```bash
+python init_db.py
+python app.py
+Cloud Deployment (Render & Docker)
+The application is containerized with a lightweight Python image without needing system ODBC drivers.
+
+Web Host: Render (Docker Web Service)
+
+Database Host: CockroachDB Cloud (Distributed SQL)
+
+Deployment Workflow: Pushing commits triggers Render to build the container and deploy.
+
+Testing
+The system was tested across multiple vectors:
+
+Database Testing: Direct SQL insertions to verify constraint rejections and cascading behaviors.
+
+Backend Testing: Form submission handling, parameterized query safety, and pyodbc exception catching.
+
+Frontend Testing: Modal state management, dark mode persistence, dynamic dropdown population, and responsive mobile layouts.
+
+NLP Testing: Ensuring plain English text successfully parsed into valid SQL queries mapped to the exact schema aliases.
+
+Contribution
+Database Design: Conceptual modeling, normalization to 3NF, schema creation.
+
+Backend Development: Flask routing, PyODBC integration, exception handling.
+
+Frontend Development: CSS variable theming, Jinja2 templating, JavaScript modal logic, Mermaid.js integration.
+
+Advanced Features: Development of the Natural Language SQL parser and the interactive query environment.
+
+Conclusion
+FleetDB successfully demonstrates the creation of a modern, full-stack database application. The project thoroughly covers the DBMS lifecycle:
+
+Domain Analysis
+↓
+Relational Modeling & Normalization
+↓
+Database Initialization (MariaDB)
+↓
+Backend Application Logic (Python/Flask)
+↓
+Database Connectivity (PyODBC)
+↓
+Frontend UI Implementation (HTML/JS)
+↓
+Advanced Querying & NLP
+↓
+Containerized Deployment
+
+The final system provides an elegant, highly structured environment to manage complex logistical data, proving the efficacy of normalized relational databases paired with dynamic web frameworks.
