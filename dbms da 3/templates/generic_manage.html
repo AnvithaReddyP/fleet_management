@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage {{ table_name }}</title>
+</head>
+<body>
+    <h1>Managing: {{ table_name }}</h1>
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+
+    <h2>Add New Record</h2>
+    <form method="POST">
+        {% for col in columns %}
+            <input type="text" name="{{ col }}" placeholder="{{ col }}" required><br><br>
+        {% endfor %}
+        <button type="submit">Add Record</button>
+    </form>
+
+    <h2>Existing Records</h2>
+    <table border="1">
+        <tr>
+            {% for col in columns %}
+                <th>{{ col }}</th>
+            {% endfor %}
+        </tr>
+        {% for row in rows %}
+        <tr>
+            {% for col in columns %}
+                <td>{{ row[col] }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

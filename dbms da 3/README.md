@@ -1,0 +1,294 @@
+# FleetDB -- Fleet Management Relational Database System
+
+## Project Overview
+FleetDB is a Python-based Fleet Management System developed as a comprehensive DBMS project. The system combines a modern, distributed CockroachDB (PostgreSQL wire-compatible) relational database with a responsive Flask web application to manage transport companies, commercial vehicles, mechanics, spare parts, and maintenance logs.
+The project demonstrates the complete database development lifecycle, from conceptual EER design and relational normalization to dynamic SQL execution, backend routing, and interactive frontend integration with Natural Language Processing (NLP) capabilities.
+
+## Objectives
+The main objectives of the project are:
+- Design and implement a highly normalized relational database for a logistics and fleet maintenance domain.
+- Convert conceptual EER designs into normalized relational tables (1NF, 2NF, 3NF).
+- Maintain strict data integrity using primary keys, foreign keys, and unique constraints.
+- Implement complex SQL queries for data insertion, retrieval, updating, and deletion (CRUD).
+- Develop a custom Natural Language-to-SQL conversion engine to make database querying accessible.
+- Connect the Python web application to CockroachDB using psycopg2.
+- Develop a clean, modal-driven, user-friendly HTML/CSS/JS frontend with dynamic dark/light theming.
+- Provide real-time dashboard statistics and a live EER diagram visualizer.
+
+## Technology Stack
+
+| Component | Technology |
+| :--- | :--- |
+| **Programming Language** | Python 3.11 / 3.12 |
+| **Frontend** | HTML5 with embedded CSS3, JavaScript, Jinja2, Tailwind-inspired CSS |
+| **Backend Framework**| Flask 3.0.2 |
+| **Database** | CockroachDB (Distributed SQL / Cloud & Local) |
+| **Database Programming** | SQL (PostgreSQL wire-compatible) |
+| **Connectivity** | psycopg2-binary |
+| **Visualization** | Mermaid.js (EER), FontAwesome 6.5.1 |
+| **Deployment** | Docker, Gunicorn 21.2.0, Render |
+
+## Development Methodology
+The project was developed in the following stages:
+- **Step 1 : Requirement Analysis:** The fleet management domain was analyzed to identify core entities and operations. Key functional areas included: Customer management, Company logistics, Vehicle tracking, Mechanic assignments, Service logging, Parts inventory, Warranty tracking, and Fuel management.
+- **Step 2 : EER and Relational Design:** Entities and relationships were mapped using an EER model. Primary keys were assigned for unique identification, and associative (bridge) tables were designed to handle many-to-many relationships (e.g., mechanics to spare parts).
+- **Step 3 : Normalization:** The schema was strictly normalized to the 3rd Normal Form (3NF) to eliminate data anomalies. Multi-valued attributes and composite relationships were broken down into dedicated relation tables.
+- **Step 4 : Database Implementation:** The normalized schema was implemented in CockroachDB. 12 core tables were created with precise data types and referential constraints.
+- **Step 5 : SQL & Backend Development:** Raw SQL queries were integrated into Python using psycopg2. The backend was structured using Flask routes to handle GET and POST requests for dynamic data rendering and mutations.
+- **Step 6 : Frontend Development:** A responsive UI was built using Jinja2 templates. Operations were encapsulated in modal windows to prevent page reloads, and a custom JavaScript search filter was implemented for all data tables.
+- **Step 7 : Advanced Features Integration:** A live Mermaid.js EER diagram was embedded, and a custom Natural Language-to-SQL parser was written in JavaScript to allow users to query the database using plain English.
+- **Step 8 : Containerization & Testing:** The application was packaged into a lightweight Docker container optimized for CockroachDB connectivity.
+
+## Database Design
+The final database contains 12 relational tables covering the major fleet entities and relationships.
+
+### Core Entities
+- **Company (Client Organizations)**
+  - Register new B2B transport companies and logistics clients.
+  - Track multi-state locations by storing specific branch areas and cities.
+  - Act as the primary anchor to query all vehicles owned by a specific corporate client.
+- **Customer (Individual Contacts)**
+  - Store personal contact details (first name, last name, phone number) for individual clients or company representatives.
+  - Link specific service requests and invoices directly to the authorizing individual.
+- **Vehicles (Fleet Assets)**
+  - Register new trucks or cars into the system with their unique license plate numbers as the primary key.
+  - Track the age of the fleet by monitoring manufacturing dates.
+  - Reassign vehicles to different corporate clients (company_id) if ownership changes.
+- **Mechanic (Service Staff)**
+  - Onboard new service personnel and categorize them by their specific skill levels.
+  - Query staff rosters to find qualified personnel for specific mechanical issues.
+  - Track which services each mechanic is actively assigned to.
+
+### Operational Entities
+- **Service (Categories & Costs)**
+  - Build a standardized catalog of available repair and maintenance operations (e.g., transmission rebuild, oil change).
+  - Track and update the base financial cost for each service category[cite: 3].
+  - Link specific service tickets back to the requesting customer[cite: 3].
+- **Spare_parts (Inventory Control)**
+  - Monitor real-time stock levels of physical components[cite: 3].
+  - Run low-stock threshold queries (e.g., identifying parts where quantity is less than 5) to trigger reordering[cite: 3].
+  - Map specific parts to the exact services that require them[cite: 3].
+- **Maintenance (Historical Logs)**
+  - Create immutable historical records of all maintenance events performed for a company[cite: 3].
+  - Store detailed text descriptions of the work completed and the exact date it occurred[cite: 3].
+  - Generate audit trails to see how often a company requires fleet repairs[cite: 3].
+- **Warranty (Coverage Tracking)**
+  - Log expiration dates and coverage types for newly purchased vehicles[cite: 3].
+  - Query the database to identify which vehicles have warranties expiring in the next 30, 60, or 90 days[cite: 3].
+  - Prevent out-of-pocket billing for services covered under an active warranty linked to a license number[cite: 3].
+- **Fuel (Consumption & Pricing)**
+  - Track different fuel types (e.g., Diesel, Petrol, EV charging) used across the fleet[cite: 3].
+  - Monitor fluctuating fuel prices and total quantities consumed[cite: 3].
+  - Analyze operational costs by linking fuel usage back to specific vehicles[cite: 3].
+
+### Associative (Bridge) Entities
+- **Availability (Mechanic & Part Mapping)**
+  - Track exactly which mechanic currently holds or has access to specific spare parts[cite: 3].
+  - Determine if a repair can proceed by cross-referencing a mechanic's schedule with the physical availability of the required part[cite: 3].
+- **Vehicle_requirements (Vehicle Needs)**
+  - Resolve the many-to-many relationship between vehicles, their required services, and their required fuel[cite: 3].
+  - Identify exactly what type of fuel a specific truck needs before dispatching it[cite: 3].
+  - Log ongoing or pending service requirements for a specific license plate[cite: 3].
+- **Service_requirements (Service Execution)**
+  - Act as the master dispatch table for a repair job[cite: 3].
+  - Link a scheduled service to the exact mechanic assigned to perform it[cite: 3].
+  - Reserve the specific spare parts needed from inventory for that exact service ticket[cite: 3].
+
+## SQL Implementation
+Standard SQL is used extensively throughout the backend for:
+- Data retrieval (SELECT with JOIN operations for the NLP query engine)[cite: 3].
+- Data insertion (INSERT INTO parameterized queries to prevent SQL injection)[cite: 3].
+- Data updates (UPDATE ... SET for editing records)[cite: 3].
+- Data deletion (DELETE FROM with cascading considerations)[cite: 3].
+- Aggregate calculations (COUNT, AVG for dashboard metrics)[cite: 3].
+- Schema introspection (SHOW TABLES, DESCRIBE for the query window)[cite: 3].
+
+## Custom Logic & Integrations
+Rather than relying purely on database-side PL/SQL, FleetDB utilizes application-side processing for advanced features[cite: 3]:
+- **Natural Language to SQL Parser:** A custom module that interprets user inputs like "show low stock parts" and translates them into `SELECT spare_part_id, name, qty FROM spare_parts WHERE qty < 5;`[cite: 3].
+- **Foreign Key Auto-Population:** When adding a new Vehicle, the backend dynamically queries the company table to populate the UI dropdown, ensuring referential integrity before the INSERT statement is even constructed[cite: 3].
+- **Live Schema Mapping:** The `/eer` endpoint generates a live Mermaid.js diagram that perfectly maps to the current constraints of the SQL database[cite: 3].
+
+## Backend Architecture
+The backend operates on a streamlined MVC-inspired architecture[cite: 3]:
+
+`Web Browser (Jinja2 / JS)` → `Flask Route Controllers (app.py)` → `DB Connection Manager (get_db_connection)` → `psycopg2-binary` → `CockroachDB Cluster`
+
+- **Controllers:** Flask routes (`/add_customer`, `/edit_vehicle`, etc.) handle request parsing, SQL execution, and flash messaging[cite: 3].
+- **Connection Management:** `.env` variables securely configure CockroachDB via connection string (`DATABASE_URL`) or individual parameters (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`).
+
+To connect to CockroachDB using psycopg2:
+```python
+# CockroachDB Cloud connection string or local credentials
+conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+```
+
+
+Frontend Architecture
+
+The frontend is implemented using HTML5 and Jinja2 templates, styled with custom CSS variables to support dynamic themes.
+•	Layout: A persistent sidebar navigation with a responsive main content area.
+•	Modals: Instead of separate pages, CRUD operations utilize dynamic overlay modals (addModal, editModal) injected with context-specific data.
+•	Client-Side Filtering: JavaScript functions filter table rows instantly without requiring a database SELECT query for basic searches.
+•	Theming: A dark/light mode toggle saves user preference to localStorage.
+
+
+Functional Modules
+
+•	Customer & Company Management: View, add, update, and delete business entities.
+•	Vehicle & Fleet Management: Track vehicles, view manufacturing dates, and assign them to corporate entities.
+•	Service & Mechanic Management: Register mechanics, define skill levels, and map them to service categories.
+•	Inventory Tracking (Spare Parts & Fuel): Monitor stock quantities and fuel pricing.
+•	Logs & Records (Maintenance & Warranty): Track historical maintenance events and monitor active warranties based on vehicle license numbers.
+•	Requirements Mapping: Manage the complex many-to-many relationships defining what vehicles need which services.
+
+
+Dashboard
+
+The main dashboard provides a summarized telemetry view of the fleet system. It retrieves and displays:
+•	Total active vehicles.
+•	Total registered B2B customers.
+•	On-duty mechanics.
+•	Database cluster connection status.
+These metrics are dynamically queried via aggregate SQL functions (SELECT COUNT(*)) upon page load to ensure real-time accuracy.
+
+
+SQL Query Module
+
+The application includes an interactive, browser-based IDE for SQL execution.
+The workflow is:
+User enters Natural Language or Raw SQL    Flask /query_window endpoint    PyODBC Cursor Execution    Dynamic Column Extraction (cursor.description)    Jinja2 Table Rendering
+
+This module allows administrators to run complex JOIN or GROUP BY queries that fall outside standard CRUD operations.
+
+
+CRUD Workflow
+
+A typical Database update follows this secure flow:
+User clicks "Edit Vehicle"
+     ↓
+JavaScript populates modal with row data
+     ↓
+User submits form
+     ↓
+Flask route (/edit_vehicle) intercepts POST data
+     ↓
+Parameterized SQL UPDATE is formulated
+     ↓
+PyODBC executes query safely
+     ↓
+Flash message generated (Success/Error)
+     ↓
+Page reloads with updated Database view
+
+
+
+
+Validation and Data Integrity
+
+•	Application Level: HTML5 required attributes and <select> dropdowns ensure users can only submit valid formatted data and existing Foreign Keys.
+
+•	Backend Level: try/except blocks in Python catch database anomalies and gracefully flash errors to the UI instead of crashing the server.
+
+•	Database Level: MariaDB enforces PRIMARY KEY uniqueness, FOREIGN KEY referential constraints, and strict data typing (e.g., DECIMAL(10,2) for costs).
+
+
+Project Structure
+
+
+FleetDB/
+│
+├── app.py                  # Main Flask application and route definitions
+├── schema.sql              # Raw SQL queries for 3NF table creation and testing
+├── requirements.txt        # Python package dependencies
+├── .env                    # Database connection credentials
+├── Dockerfile              # Containerization and ODBC setup instructions
+├── Procfile                # Gunicorn deployment configuration
+│
+└── templates/
+    ├── dashboard.html      # Main interface, metrics, and all CRUD modals
+    ├── eer.html            # Mermaid.js schema visualizer
+    └── query.html          # Interactive SQL editor and NLP module16. Installation and Setup
+
+Prerequisites
+
+•	Python 3.11+ / 3.12+
+•	CockroachDB (CockroachDB Cloud Serverless or local CockroachDB cluster)
+
+Database Setup
+
+1.	Create a CockroachDB cluster (or start a local node: `cockroach start-single-node --insecure`).
+2.	Create a database (default is `defaultdb` or `fleetdb`).
+3.	Configure your local `.env` file:
+
+```env
+# Option 1: CockroachDB Cloud Connection String (Recommended)
+DATABASE_URL=postgresql://<username>:<password>@<cluster-host>:26257/<database>?sslmode=verify-full
+
+# Option 2: Individual variables
+DB_HOST=localhost
+DB_PORT=26257
+DB_NAME=defaultdb
+DB_USER=root
+DB_PASSWORD=
+DB_SSLMODE=disable
+SECRET_KEY=super_secret_key
+```
+
+4. Initialize and seed the database:
+```bash
+python init_db.py
+```
+
+Running the Application
+
+```bash
+python app.py
+```
+
+Cloud Deployment (Render & Docker)
+The application is containerized with a lightweight Python image without needing system ODBC drivers.
+•	Web Host: Render (Docker Web Service)
+•	Database Host: CockroachDB Cloud (Distributed SQL)
+•	Deployment Workflow: Pushing commits triggers Render to build the container and deploy.
+
+
+Testing
+
+The system was tested across multiple vectors:
+•	Database Testing: Direct SQL insertions to verify constraint rejections and cascading behaviors.
+•	Backend Testing: Form submission handling, parameterized query safety, and pyodbc exception catching.
+•	Frontend Testing: Modal state management, dark mode persistence, dynamic dropdown population, and responsive mobile layouts.
+•	NLP Testing: Ensuring plain English text successfully parsed into valid SQL queries mapped to the exact schema aliases.
+
+
+Contribution
+
+•	Database Design: Conceptual modeling, normalization to 3NF, schema creation.
+•	Backend Development: Flask routing, PyODBC integration, exception handling.
+•	Frontend Development: CSS variable theming, Jinja2 templating, JavaScript modal logic, Mermaid.js integration.
+•	Advanced Features: Development of the Natural Language SQL parser and the interactive query environment.
+
+
+Conclusion
+
+FleetDB successfully demonstrates the creation of a modern, full-stack database application.
+The project thoroughly covers the DBMS lifecycle:
+Domain Analysis
+       ↓
+Relational Modeling & Normalization
+       ↓
+Database Initialization (MariaDB)
+       ↓
+Backend Application Logic (Python/Flask)
+       ↓
+Database Connectivity (PyODBC)
+       ↓
+Frontend UI Implementation (HTML/JS)
+       ↓
+Advanced Querying & NLP
+       ↓
+Containerized Deployment
+
+The final system provides an elegant, highly structured environment to manage complex logistical data, proving the efficacy of normalized relational databases paired with dynamic web frameworks.
+

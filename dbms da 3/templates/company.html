@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Company</title>
+</head>
+<body>
+    <h1>Company Management</h1>
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    
+    <h2>Add Company</h2>
+    <form method="POST">
+        <input type="text" name="Company_ID" placeholder="Company ID (Alphanumeric)" required>
+        <input type="text" name="Location" placeholder="Location" required>
+        <input type="text" name="Area" placeholder="Area" required>
+        <input type="text" name="City" placeholder="City" required>
+        <input type="text" name="State" placeholder="State" required>
+        <button type="submit">Add Company</button>
+    </form>
+
+    <h2>Company List</h2>
+    <table border="1">
+        <tr>
+            <th>ID</th><th>Location</th><th>Area</th><th>City</th><th>State</th><th>Action</th>
+        </tr>
+        {% for c in companies %}
+        <tr>
+            <td>{{ c.Company_ID }}</td>
+            <td>{{ c.Location }}</td>
+            <td>{{ c.Area }}</td>
+            <td>{{ c.City }}</td>
+            <td>{{ c.State }}</td>
+            <td>
+                <form action="{{ url_for('delete_company', id=c.Company_ID) }}" method="POST" style="display:inline;">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

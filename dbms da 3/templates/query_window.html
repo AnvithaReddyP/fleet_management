@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SQL Query Window</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f8f9fa; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h1 { color: #2c3e50; }
+        textarea { width: 100%; padding: 15px; margin: 15px 0; border: 1px solid #ced4da; border-radius: 4px; font-family: monospace; font-size: 14px; }
+        button { padding: 12px 25px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #2980b9; }
+        .back-link { display: inline-block; margin-top: 20px; color: #7f8c8d; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; color: #2c3e50; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
+        th { background-color: #f1f3f5; }
+        .error { color: #e74c3c; font-weight: bold; padding: 15px; background: #fadbd8; border-radius: 4px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Run Custom SQL Query</h1>
+        <form method="POST">
+            <textarea name="sql_query" rows="6" placeholder="SELECT * FROM Customer;" required></textarea><br>
+            <button type="submit">Execute Query</button>
+        </form>
+
+        {% if error %}
+            <div class="error">Error: {{ error }}</div>
+        {% endif %}
+
+        {% if results %}
+            <h3 style="margin-top: 30px;">Query Results:</h3>
+            <table>
+                <tr>
+                    {% for key in results[0].keys() %}
+                        <th>{{ key }}</th>
+                    {% endfor %}
+                </tr>
+                {% for row in results %}
+                    <tr>
+                        {% for value in row.values() %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+        
+        <a href="/" class="back-link">&larr; Back to Dashboard</a>
+    </div>
+</body>
+</html>
